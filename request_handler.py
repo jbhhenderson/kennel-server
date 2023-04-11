@@ -3,7 +3,26 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from views import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
 from views import get_all_locations, get_single_location, create_location, delete_location, update_location
 from views import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee
-from views import get_all_customers, get_single_customer, create_customer, delete_customer, update_customer
+from views import get_all_customers, get_single_customer, create_customer, update_customer
+
+method_mapper = {
+    "animals" : {
+        "single": get_single_animal,
+        "all": get_all_animals,
+    },
+    "locations": {
+        "single": get_single_location,
+        "all": get_all_locations
+    },
+    "employees": {
+        "single": get_single_employee,
+        "all": get_all_employees
+    },
+    "customers": {
+        "single": get_single_customer,
+        "all": get_all_customers
+    }
+}
 
 # Here's a class. It inherits from another class.
 # For now, think of a class as a container for functions that
@@ -15,78 +34,97 @@ class HandleRequests(BaseHTTPRequestHandler):
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
 
+    def get_all_or_single(self, resource, id):
+        if id is not None:
+            response = method_mapper[resource]["single"](id)
+
+            if response is not None:
+                self._set_headers(200)
+            else:
+                self._set_headers(404)
+                response = ''
+        else:
+            self._set_headers(200)
+            response = method_mapper[resource]["all"]()
+        return response
+
+    def do_GET(self):
+        response = None
+        (resource, id) = self.parse_url(self.path)
+        response = self.get_all_or_single(resource, id)
+        self.wfile.write(json.dumps(response).encode())
     # Here's a class function
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any GET request.
-    def do_GET(self):
-        "Test"
-        # self._set_headers(200)
-        response = {}  # Default response
+    # def do_GET(self):
+    #     "Test"
+    #     # self._set_headers(200)
+    #     response = {}  # Default response
 
-        # Parse the URL and capture the tuple that is returned
-        (resource, id) = self.parse_url(self.path)
+    #     # Parse the URL and capture the tuple that is returned
+    #     (resource, id) = self.parse_url(self.path)
 
-        if resource == "animals":
-            if id is not None:
-                response = get_single_animal(id)
-                if response is not None:
-                    self._set_headers(200)
+    #     if resource == "animals":
+    #         if id is not None:
+    #             response = get_single_animal(id)
+    #             if response is not None:
+    #                 self._set_headers(200)
                     
-                else:
-                    self._set_headers(404)
-                    response = { "message": f"Animal {id} is out playing right now" }
+    #             else:
+    #                 self._set_headers(404)
+    #                 response = { "message": f"Animal {id} is out playing right now" }
 
-            else:
-                response = get_all_animals()
-                self._set_headers(200)
+    #         else:
+    #             response = get_all_animals()
+    #             self._set_headers(200)
 
-        if resource == "locations":
-            if id is not None:
-                response = get_single_location(id)
-                if response is not None:
-                    self._set_headers(200)
+    #     if resource == "locations":
+    #         if id is not None:
+    #             response = get_single_location(id)
+    #             if response is not None:
+    #                 self._set_headers(200)
                     
-                else:
-                    self._set_headers(404)
-                    response = { "message": f"Location {id} is not available" }
+    #             else:
+    #                 self._set_headers(404)
+    #                 response = { "message": f"Location {id} is not available" }
 
 
-            else:
-                response = get_all_locations()
-                self._set_headers(200)
+    #         else:
+    #             response = get_all_locations()
+    #             self._set_headers(200)
 
 
-        if resource == "employees":
-            if id is not None:
-                response = get_single_employee(id)
-                if response is not None:
-                    self._set_headers(200)
+    #     if resource == "employees":
+    #         if id is not None:
+    #             response = get_single_employee(id)
+    #             if response is not None:
+    #                 self._set_headers(200)
                     
-                else:
-                    self._set_headers(404)
-                    response = { "message": f"Employee {id} is not available" }
+    #             else:
+    #                 self._set_headers(404)
+    #                 response = { "message": f"Employee {id} is not available" }
 
-            else:
-                response = get_all_employees()
-                self._set_headers(200)
+    #         else:
+    #             response = get_all_employees()
+    #             self._set_headers(200)
 
-        if resource == "customers":
-            if id is not None:
-                response = get_single_customer(id)
-                if response is not None:
-                    self._set_headers(200)
+    #     if resource == "customers":
+    #         if id is not None:
+    #             response = get_single_customer(id)
+    #             if response is not None:
+    #                 self._set_headers(200)
                     
-                else:
-                    self._set_headers(404)
-                    response = { "message": f"Customer {id} is not available" }
+    #             else:
+    #                 self._set_headers(404)
+    #                 response = { "message": f"Customer {id} is not available" }
 
 
-            else:
-                response = get_all_customers()
-                self._set_headers(200)
+    #         else:
+    #             response = get_all_customers()
+    #             self._set_headers(200)
 
-        self.wfile.write(json.dumps(response).encode())
+    #     self.wfile.write(json.dumps(response).encode())
 
     def parse_url(self, path):
         "Test"
